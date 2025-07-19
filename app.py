@@ -2,9 +2,9 @@ import streamlit as st
 import numpy as np
 import pickle
 
-# Load model and encoders from your fixed folder
-model_path = r"C:\Users\akash\Desktop\New folder\1celebal\Assignment 7\model.pkl"
-encoder_path = r"C:\Users\akash\Desktop\New folder\1celebal\Assignment 7\encoders.pkl"
+# Load model and encoders
+model_path = "model.pkl"
+encoder_path = "encoders.pkl"
 
 with open(model_path, "rb") as f:
     model = pickle.load(f)
@@ -12,8 +12,8 @@ with open(model_path, "rb") as f:
 with open(encoder_path, "rb") as f:
     le_sex, le_class, le_embarked = pickle.load(f)
 
-# Streamlit UI
 st.set_page_config(page_title="🚢 Titanic Survival Predictor")
+
 st.title("🚢 Titanic Survival Predictor")
 st.markdown("Enter passenger details to predict survival:")
 
@@ -22,20 +22,15 @@ sex = st.radio("Sex", ["male", "female"])
 age = st.slider("Age", 1, 80, 30)
 fare = st.slider("Fare Paid", 0, 500, 50)
 pclass = st.selectbox("Class", ["First", "Second", "Third"])
-
-# Embarked port input — maps full name to dataset short code
-embarked_display = {
-    "Southampton": "S",
-    "Cherbourg": "C",
-    "Queenstown": "Q"
-}
-embarked_label = st.selectbox("Port of Embarkation", list(embarked_display.keys()))
-embarked = embarked_display[embarked_label]
+embarked = st.selectbox("Port of Embarkation", ["Southampton", "Cherbourg", "Queenstown"])
 
 # Encode inputs
-sex_enc = le_sex.transform([sex])[0]
-pclass_enc = le_class.transform([pclass])[0]
-embarked_enc = le_embarked.transform([embarked])[0]
+try:
+    sex_enc = le_sex.transform([sex])[0]
+    pclass_enc = le_class.transform([pclass])[0]
+    embarked_enc = le_embarked.transform([embarked])[0]
+except ValueError:
+    st.error("⚠️ Input label not recognized by encoder. Check your training data encodings.")
 
 # Predict
 input_data = np.array([[sex_enc, age, fare, pclass_enc, embarked_enc]])
